@@ -37,7 +37,7 @@ uv run python main.py run https://github.com/pallets/jinja
 
 This will:
 - Load SWE-smith tasks for `pallets/jinja`
-- Generate an initial skill via Claude
+- Generate an initial skill
 - Run up to 150 mini evaluations to optimize the skill
 - Write the result to `.claude/skills/jinja/SKILL.md`
 
