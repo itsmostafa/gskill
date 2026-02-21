@@ -2,10 +2,22 @@
 
 import base64
 import json
+import re
 import urllib.request
 from pathlib import Path
 
 import openai
+
+
+def _make_skill_name(repo: str) -> str:
+    """Sanitize a repo short name into a valid skill name.
+
+    Rules: lowercase, only [a-z0-9-], collapse/strip hyphens, max 64 chars.
+    """
+    name = repo.lower()
+    name = re.sub(r"[^a-z0-9]+", "-", name)
+    name = name.strip("-")
+    return name[:64]
 
 
 def _fetch_readme(owner: str, repo: str, max_chars: int = 3000) -> str:
@@ -50,11 +62,12 @@ def generate_initial_skill(repo_url: str) -> str:
         repo_url: Full GitHub URL, e.g. 'https://github.com/pallets/jinja'.
 
     Returns:
-        Skill content as a string (plain text / markdown).
+        Skill content as a string (YAML frontmatter + markdown body).
     """
     # Parse owner/repo from URL
     parts = repo_url.rstrip("/").split("/")
     owner, repo = parts[-2], parts[-1]
+    skill_name = _make_skill_name(repo)
 
     readme = _fetch_readme(owner, repo)
 
@@ -89,7 +102,16 @@ README (may be truncated):
 {readme}
 {extra_context}
 
-Write a concise SKILL.md (400-800 words) that covers:
+Output a complete SKILL.md starting with YAML frontmatter, then the body. Use exactly this structure:
+
+---
+name: {skill_name}
+description: <one-sentence description, max 1024 characters, no angle-bracket XML tags, stating what the skill covers and when to use it>
+---
+
+<body: 400-800 words covering the five sections below>
+
+The body must cover:
 
 1. **Test commands**: The exact command(s) to run the test suite (e.g., `pytest`, `tox`, `make test`).
    If there are relevant flags or test file patterns, include them.
@@ -98,9 +120,12 @@ Write a concise SKILL.md (400-800 words) that covers:
 4. **Common pitfalls**: Mistakes an agent typically makes on this repo and how to avoid them.
 5. **Workflow**: Recommended steps to diagnose and fix an issue (reproduce, patch, verify).
 
-Be specific and actionable. Write for an AI agent, not a human developer.
-Do NOT include generic advice that applies to all Python projects.
-Focus on what is distinctive about {repo}.""",
+Constraints:
+- The `name` field must be exactly: {skill_name}
+- The `description` must be non-empty, at most 1024 characters, and must not contain angle-bracket XML tags.
+- Be specific and actionable. Write for an AI agent, not a human developer.
+- Do NOT include generic advice that applies to all Python projects.
+- Focus on what is distinctive about {repo}.""",
             }
         ],
     )
