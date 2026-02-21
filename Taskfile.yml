@@ -1,0 +1,32 @@
+version: "3"
+
+tasks:
+  sync:
+    desc: Install dependencies from lockfile
+    cmds:
+      - uv sync
+
+  lint:
+    desc: Lint with ruff
+    cmds:
+      - uv run ruff check .
+
+  format:
+    desc: Format with ruff
+    cmds:
+      - uv run ruff format .
+
+  test:
+    desc: Run tests
+    cmds:
+      - uv run pytest
+
+  run:
+    desc: Run the gskill pipeline
+    cmds:
+      - uv run main.py run {{.CLI_ARGS}}
+
+  tasks:
+    desc: List SWE-smith tasks for a repo
+    cmds:
+      - uv run main.py tasks {{.CLI_ARGS}}
