@@ -74,7 +74,8 @@ def run(
         ),
     )
 
+    best_score = result.val_aggregate_scores[result.best_idx]
     out_path = save_skill(result.best_candidate, repo_name, output_dir)
-    print(f"[gskill] Best resolve rate: {result.best_score:.1%}")
+    print(f"[gskill] Best resolve rate: {best_score:.1%}")
     print(f"[gskill] Skill saved to: {out_path}")
     return result
