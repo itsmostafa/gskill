@@ -33,6 +33,12 @@ def run(
         "--no-initial-skill",
         help="Skip static analysis; start GEPA from an empty seed.",
     ),
+    agent_model: str = typer.Option(
+        "",
+        "--agent-model",
+        "-m",
+        help="Model for mini-SWE-agent (e.g. openai/gpt-5.2). Env: GSKILL_AGENT_MODEL.",
+    ),
 ) -> None:
     """Run the gskill pipeline: optimize a SKILL.md for the given repository."""
     from src.pipeline import run as _run
@@ -42,6 +48,7 @@ def run(
         output_dir=output_dir,
         max_evals=max_evals,
         use_initial_skill=not no_initial_skill,
+        agent_model=agent_model or None,
     )
 
 

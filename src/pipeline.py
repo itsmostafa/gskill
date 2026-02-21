@@ -22,6 +22,7 @@ def run(
     output_dir: str = ".claude/skills",
     max_evals: int = 150,
     use_initial_skill: bool = True,
+    agent_model: str | None = None,
 ) -> object:
     """Run the full gskill pipeline for a repository.
 
@@ -31,6 +32,8 @@ def run(
         max_evals: GEPA evaluation budget (number of mini runs).
         use_initial_skill: If True, generate an initial skill via Claude as the seed.
             If False, start GEPA from an empty seed.
+        agent_model: LiteLLM model string for mini-SWE-agent. Falls back to
+            ``GSKILL_AGENT_MODEL`` env var, then ``openai/gpt-5.2``.
 
     Returns:
         GEPA result object with ``best_candidate`` and ``best_score`` attributes.
@@ -52,7 +55,7 @@ def run(
     else:
         print("[gskill] Skipping initial skill generation (--no-initial-skill).")
 
-    evaluator = make_evaluator()
+    evaluator = make_evaluator(agent_model=agent_model)
 
     print(f"[gskill] Starting GEPA optimization (max_evals={max_evals})...")
     result = optimize_anything(

@@ -7,13 +7,15 @@ import textwrap
 from pathlib import Path
 from typing import Callable
 
-import yaml
-
 import gepa.optimize_anything as oa
+import yaml
 from minisweagent.agents import get_agent
 from minisweagent.config import builtin_config_dir, get_config_from_spec
 from minisweagent.models import get_model
-from minisweagent.run.benchmarks.swebench import get_sb_environment, get_swebench_docker_image_name
+from minisweagent.run.benchmarks.swebench import (
+    get_sb_environment,
+    get_swebench_docker_image_name,
+)
 from minisweagent.utils.serialize import recursive_merge
 
 _SWEBENCH_CONFIG = builtin_config_dir / "benchmarks" / "swebench.yaml"
@@ -111,7 +113,9 @@ def _run_tests(instance: dict, patch: str) -> tuple[bool, str]:
         os.unlink(patch_file)
 
 
-def make_evaluator() -> Callable[[str, dict], tuple[float, dict]]:
+def make_evaluator(
+    agent_model: str | None = None,
+) -> Callable[[str, dict], tuple[float, dict]]:
     """Create a GEPA-compatible evaluator that runs mini-SWE-Agent on a SWE-smith task.
 
     The returned evaluator:
@@ -121,9 +125,16 @@ def make_evaluator() -> Callable[[str, dict], tuple[float, dict]]:
       4. Verifies the patch by running FAIL_TO_PASS tests in a fresh container.
       5. Returns (score, side_info) for GEPA reflection.
 
+    Args:
+        agent_model: LiteLLM model string for mini-SWE-agent (e.g. ``openai/gpt-5.2``).
+            Falls back to the ``GSKILL_AGENT_MODEL`` env var, then ``openai/gpt-5.2``.
+
     Returns:
         Callable suitable for passing to ``optimize_anything(evaluator=...)``.
     """
+    resolved_model = agent_model or os.environ.get(
+        "GSKILL_AGENT_MODEL", "openai/gpt-5.2"
+    )
 
     def evaluate(candidate_skill: str, task: dict) -> tuple[float, dict]:
         skill_config_path = _write_skill_config(candidate_skill)
@@ -148,6 +159,7 @@ def make_evaluator() -> Callable[[str, dict], tuple[float, dict]]:
                         "confirm_exit": False,
                     }
                 },
+                {"model": {"model_name": resolved_model}},
             ]
             config = recursive_merge(*configs)
 
