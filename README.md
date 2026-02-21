@@ -1,5 +1,10 @@
 # gskill
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff)](https://claude.ai/code)
+![Last Commit](https://img.shields.io/github/last-commit/itsmostafa/gskill)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/itsmostafa/gskill/pulls)
+
 Automatically learns repository-specific skills for coding agents using evolutionary search.
 
 Given a GitHub repository, gskill produces a `.claude/skills/{repo}/SKILL.md` file containing optimized instructions that dramatically improve an agent's resolve rate on that repo's issues. It implements the pipeline described in the [GEPA blog post](https://gepa-ai.github.io/gepa/blog/2026/02/18/automatically-learning-skills-for-coding-agents/), which demonstrated improvements from 24% → 93% resolve rate on some repositories.
