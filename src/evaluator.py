@@ -147,18 +147,13 @@ def make_evaluator(
         score = 0.0
         error_msg = ""
         test_reason = ""
+        env = None
 
         try:
             configs = [
                 get_config_from_spec(str(_SWEBENCH_CONFIG)),
                 get_config_from_spec(str(skill_config_path)),
-                {
-                    "agent": {
-                        "mode": "yolo",
-                        "output_path": traj_tmp.name,
-                        "confirm_exit": False,
-                    }
-                },
+                {"agent": {"output_path": traj_tmp.name}},
                 {"model": {"model_name": resolved_model}},
             ]
             config = recursive_merge(*configs)
@@ -166,7 +161,7 @@ def make_evaluator(
             env = get_sb_environment(config, task)
             model = get_model(config=config.get("model", {}))
             agent = get_agent(
-                model, env, config.get("agent", {}), default_type="interactive"
+                model, env, config.get("agent", {}), default_type="default"
             )
 
             result = agent.run(task["problem_statement"])
@@ -176,10 +171,13 @@ def make_evaluator(
             error_msg = f"{type(e).__name__}: {e}"
             oa.log(f"Mini run error: {error_msg}")
         finally:
-            try:
-                os.unlink(skill_config_path)
-            except OSError:
-                pass
+            if env is not None:
+                env.cleanup()
+            for path in (skill_config_path, traj_tmp.name):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
 
         if patch.strip():
             passed, test_reason = _run_tests(task, patch)
