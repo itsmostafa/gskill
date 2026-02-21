@@ -22,7 +22,7 @@ Given a GitHub repository, gskill produces a `.claude/skills/{repo}/SKILL.md` fi
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/)
 - Docker (for running SWE-smith task environments)
-- `ANTHROPIC_API_KEY` set in your environment (for initial skill generation and GEPA reflection)
+- `OPENAI_API_KEY` set in your environment (for initial skill generation and GEPA reflection)
 
 ## Installation
 
