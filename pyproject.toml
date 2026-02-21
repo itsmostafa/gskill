@@ -1,0 +1,34 @@
+[project]
+name = "gskill"
+version = "0.1.0"
+description = "Automatically learn repository-specific skills for coding agents via evolutionary search"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "datasets>=3.0.0",
+    "gepa",
+    "mini-swe-agent>=2.2.3",
+    "openai>=2.21.0",
+    "typer>=0.15.0",
+]
+
+[project.scripts]
+gskill = "main:app"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.uv.sources]
+gepa = { git = "https://github.com/gepa-ai/gepa.git" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.2",
+]
