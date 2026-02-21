@@ -1,4 +1,4 @@
-"""Initial skill generation via Claude and skill file I/O."""
+"""Initial skill generation skill file I/O."""
 
 import base64
 import json
@@ -53,9 +53,9 @@ def _fetch_file(owner: str, repo: str, path: str, max_chars: int = 2000) -> str:
 
 
 def generate_initial_skill(repo_url: str) -> str:
-    """Generate an initial SKILL.md for the repo via static analysis + Claude.
+    """Generate an initial SKILL.md for the repo via static analysis.
 
-    Fetches the README and common config files, then asks Claude to synthesize
+    Fetches the README and common config files, then asks gpt-5.2 to synthesize
     repo-specific guidance for a coding agent.
 
     Args:
