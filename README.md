@@ -23,6 +23,7 @@ Given a GitHub repository, gskill produces a `.claude/skills/{repo}/SKILL.md` fi
 - [uv](https://docs.astral.sh/uv/)
 - Docker (for running SWE-smith task environments)
 - `OPENAI_API_KEY` set in your environment (for initial skill generation and GEPA reflection)
+- `GSKILL_AGENT_MODEL` (optional) — LiteLLM model string for mini-SWE-agent (default: `openai/gpt-5.2`)
 
 ## Installation
 
@@ -57,7 +58,16 @@ uv run python main.py run https://github.com/pallets/jinja --output-dir ~/skills
 
 # Skip static analysis, start from an empty seed
 uv run python main.py run https://github.com/pallets/jinja --no-initial-skill
+
+# Use a different model for the coding agent
+uv run python main.py run https://github.com/pallets/jinja --agent-model openai/gpt-5-mini
+
+# Use a local model (e.g. qwen2.5-coder running on localhost:11434)
+OPENAI_BASE_URL=http://localhost:11434/v1 \
+  uv run python main.py run https://github.com/pallets/jinja --agent-model openai/gpt-oss-120b
 ```
+
+You can also set the agent model via the `GSKILL_AGENT_MODEL` environment variable instead of passing `--agent-model` every time.
 
 ### Preview available tasks
 
@@ -87,15 +97,29 @@ The optimized skill is written to:
 
 To use it with Claude Code, add the skill path to your project's `.claude/settings.json` or reference it from your `CLAUDE.md`.
 
+## Task runner
+
+A [Taskfile.yml](Taskfile.yml) provides shortcuts for common operations (requires [Task](https://taskfile.dev)):
+
+```bash
+task sync                # uv sync
+task lint                # ruff check
+task format              # ruff format
+task test                # pytest
+task run -- owner/repo   # gskill run (pass args via CLI_ARGS)
+task tasks               # gskill tasks (pass args via CLI_ARGS)
+```
+
 ## Project structure
 
 ```
 gskill/
 ├── main.py              # CLI entry point (typer)
-├── gskill/
+├── src/
 │   ├── pipeline.py      # Top-level orchestration
 │   ├── tasks.py         # SWE-smith dataset loading & splitting
 │   ├── evaluator.py     # mini runner + pass/fail evaluation
-│   └── skill.py         # Initial skill generation (Claude) + file I/O
+│   └── skill.py         # Initial skill generation (gpt-5.2) + file I/O
+├── Taskfile.yml         # Task runner shortcuts
 └── pyproject.toml
 ```
