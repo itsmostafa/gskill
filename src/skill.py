@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 import re
 import urllib.request
 from pathlib import Path
@@ -52,14 +53,20 @@ def _fetch_file(owner: str, repo: str, path: str, max_chars: int = 2000) -> str:
     return ""
 
 
-def generate_initial_skill(repo_url: str) -> str:
+def generate_initial_skill(
+    repo_url: str,
+    model: str | None = None,
+    base_url: str | None = None,
+) -> str:
     """Generate an initial SKILL.md for the repo via static analysis.
 
-    Fetches the README and common config files, then asks gpt-5.2 to synthesize
+    Fetches the README and common config files, then asks a model to synthesize
     repo-specific guidance for a coding agent.
 
     Args:
         repo_url: Full GitHub URL, e.g. 'https://github.com/pallets/jinja'.
+        model: Model to use. Defaults to GSKILL_SKILL_MODEL env var, then 'gpt-5.2'.
+        base_url: OpenAI-compatible base URL. Defaults to OPENAI_BASE_URL env var.
 
     Returns:
         Skill content as a string (YAML frontmatter + markdown body).
@@ -85,9 +92,18 @@ def generate_initial_skill(repo_url: str) -> str:
             extra_context += f"\n\n### {candidate}\n```\n{content}\n```"
             break  # one is enough
 
-    client = openai.OpenAI()
+    resolved_model = model or os.environ.get("GSKILL_SKILL_MODEL", "gpt-5.2")
+    resolved_base_url = base_url or os.environ.get("OPENAI_BASE_URL")
+
+    client_kwargs: dict = {}
+    if resolved_base_url:
+        client_kwargs["base_url"] = resolved_base_url
+    if not os.environ.get("OPENAI_API_KEY") and resolved_base_url:
+        client_kwargs["api_key"] = "none"
+
+    client = openai.OpenAI(**client_kwargs)
     message = client.chat.completions.create(
-        model="gpt-5.2",
+        model=resolved_model,
         max_completion_tokens=2000,
         messages=[
             {

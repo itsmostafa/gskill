@@ -23,6 +23,8 @@ def run(
     max_evals: int = 150,
     use_initial_skill: bool = True,
     agent_model: str | None = None,
+    skill_model: str | None = None,
+    base_url: str | None = None,
 ) -> object:
     """Run the full gskill pipeline for a repository.
 
@@ -30,10 +32,14 @@ def run(
         repo_url: GitHub repository URL (e.g., 'https://github.com/pallets/jinja').
         output_dir: Directory to write the optimized SKILL.md.
         max_evals: GEPA evaluation budget (number of mini runs).
-        use_initial_skill: If True, generate an initial skill via Claude as the seed.
+        use_initial_skill: If True, generate an initial skill as the seed.
             If False, start GEPA from an empty seed.
         agent_model: LiteLLM model string for mini-SWE-agent. Falls back to
             ``GSKILL_AGENT_MODEL`` env var, then ``openai/gpt-5.2``.
+        skill_model: Model for initial skill generation. Falls back to
+            ``GSKILL_SKILL_MODEL`` env var, then ``gpt-5.2``.
+        base_url: OpenAI-compatible base URL for local models. Falls back to
+            ``OPENAI_BASE_URL`` env var.
 
     Returns:
         GEPA result object with ``best_candidate`` and ``best_score`` attributes.
@@ -48,8 +54,10 @@ def run(
 
     seed_skill: str | None = None
     if use_initial_skill:
-        print("[gskill] Generating initial skill via GPT-5.2...")
-        seed_skill = generate_initial_skill(repo_url)
+        print("[gskill] Generating initial skill...")
+        seed_skill = generate_initial_skill(
+            repo_url, model=skill_model, base_url=base_url
+        )
         print(f"[gskill] Initial skill ({len(seed_skill)} chars) generated.")
 
     else:

@@ -39,6 +39,18 @@ def run(
         "-m",
         help="Model for mini-SWE-agent (e.g. openai/gpt-5.2). Env: GSKILL_AGENT_MODEL.",
     ),
+    skill_model: str = typer.Option(
+        "",
+        "--skill-model",
+        "-s",
+        help="Model for initial skill generation (e.g. gpt-4o). Env: GSKILL_SKILL_MODEL.",
+    ),
+    base_url: str = typer.Option(
+        "",
+        "--base-url",
+        "-u",
+        help="OpenAI-compatible base URL for local models (e.g. http://localhost:11434/v1). Env: OPENAI_BASE_URL.",
+    ),
 ) -> None:
     """Run the gskill pipeline: optimize a SKILL.md for the given repository."""
     from src.pipeline import run as _run
@@ -49,6 +61,8 @@ def run(
         max_evals=max_evals,
         use_initial_skill=not no_initial_skill,
         agent_model=agent_model or None,
+        skill_model=skill_model or None,
+        base_url=base_url or None,
     )
 
 
