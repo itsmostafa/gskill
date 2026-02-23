@@ -103,6 +103,12 @@ def generate_initial_skill(
 
     resolved_model = resolved_model or "gpt-5.2"
 
+    # Strip LiteLLM-style provider prefix (e.g. "openai/gpt-5.2" -> "gpt-5.2").
+    # The OpenAI client talks to the endpoint directly, so the prefix is meaningless
+    # and confuses non-OpenAI backends like Ollama.
+    if "/" in resolved_model:
+        resolved_model = resolved_model.split("/", 1)[1]
+
     client_kwargs: dict = {}
     if resolved_base_url:
         client_kwargs["base_url"] = resolved_base_url
