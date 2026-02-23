@@ -116,13 +116,14 @@ def generate_initial_skill(
         client_kwargs["api_key"] = "none"
 
     client = openai.OpenAI(**client_kwargs)
-    message = client.chat.completions.create(
-        model=resolved_model,
-        max_completion_tokens=2000,
-        messages=[
-            {
-                "role": "user",
-                "content": f"""You are generating a SKILL.md for the '{repo}' repository.
+    try:
+        message = client.chat.completions.create(
+            model=resolved_model,
+            max_tokens=2000,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"""You are generating a SKILL.md for the '{repo}' repository.
 This skill file will be injected into the system prompt of a coding agent that must
 solve GitHub issues by modifying source files in a Docker container at /testbed.
 
@@ -156,10 +157,28 @@ Constraints:
 - Be specific and actionable. Write for an AI agent, not a human developer.
 - Do NOT include generic advice that applies to all Python projects.
 - Focus on what is distinctive about {repo}.""",
-            }
-        ],
-    )
-    return message.choices[0].message.content
+                }
+            ],
+        )
+    except openai.APIStatusError as exc:
+        endpoint = resolved_base_url or "https://api.openai.com"
+        raise RuntimeError(
+            f"Skill generation failed — HTTP {exc.status_code} from {endpoint!r} "
+            f"with model {resolved_model!r}: {exc.message}"
+        ) from exc
+    except openai.APIConnectionError as exc:
+        endpoint = resolved_base_url or "https://api.openai.com"
+        raise RuntimeError(
+            f"Skill generation failed — could not connect to {endpoint!r}: {exc}"
+        ) from exc
+
+    content = message.choices[0].message.content
+    if not content:
+        raise RuntimeError(
+            f"Skill generation failed — model {resolved_model!r} returned an empty response "
+            "(the model may have invoked a tool instead of generating text, or the response was filtered)"
+        )
+    return content
 
 
 def save_skill(skill: str, repo_name: str, output_dir: str = ".claude/skills") -> Path:
