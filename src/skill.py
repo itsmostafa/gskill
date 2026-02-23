@@ -92,8 +92,16 @@ def generate_initial_skill(
             extra_context += f"\n\n### {candidate}\n```\n{content}\n```"
             break  # one is enough
 
-    resolved_model = model or os.environ.get("GSKILL_SKILL_MODEL", "gpt-5.2")
     resolved_base_url = base_url or os.environ.get("OPENAI_BASE_URL")
+    resolved_model = model or os.environ.get("GSKILL_SKILL_MODEL")
+
+    if resolved_base_url and not resolved_model:
+        raise ValueError(
+            "A custom base URL is set but no skill model was specified. "
+            "Use --skill-model or set GSKILL_SKILL_MODEL to the model name your local backend serves."
+        )
+
+    resolved_model = resolved_model or "gpt-5.2"
 
     client_kwargs: dict = {}
     if resolved_base_url:
