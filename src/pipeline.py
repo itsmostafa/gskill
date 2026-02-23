@@ -55,11 +55,15 @@ def run(
     seed_skill: str | None = None
     if use_initial_skill:
         print("[gskill] Generating initial skill...")
-        seed_skill = generate_initial_skill(
-            repo_url, model=skill_model, base_url=base_url
-        )
-        print(f"[gskill] Initial skill ({len(seed_skill)} chars) generated.")
-
+        try:
+            seed_skill = generate_initial_skill(
+                repo_url, model=skill_model, base_url=base_url
+            )
+            out_path = save_skill(seed_skill, repo_name, output_dir)
+            print(f"[gskill] Initial skill ({len(seed_skill)} chars) saved to: {out_path}")
+        except Exception as exc:
+            print(f"[gskill] Warning: initial skill generation failed — {exc}")
+            print("[gskill] Continuing without seed skill (GEPA will start from scratch).")
     else:
         print("[gskill] Skipping initial skill generation (--no-initial-skill).")
 
