@@ -84,7 +84,10 @@ def tasks(
         help="List all available tasks (up to --limit).",
     ),
 ) -> None:
-    """List available SWE-smith tasks for a repository."""
+    """List available SWE-smith tasks for a repository and write them to a JSON file."""
+    import json
+    from datetime import datetime
+
     from src.tasks import load_tasks
 
     try:
@@ -94,13 +97,15 @@ def tasks(
         raise typer.Exit(code=1)
 
     shown = all_tasks[:limit]
-    typer.echo(f"Found {len(all_tasks)} tasks for '{repo}' (showing {len(shown)}):\n")
-    for t in shown:
-        iid = t.get("instance_id", "?")
-        stmt = t.get("problem_statement", "")[:120].replace("\n", " ")
-        typer.echo(f"  {iid}")
-        typer.echo(f"    {stmt}...")
-        typer.echo()
+
+    owner, repo_name = repo.split("/", 1)
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    filename = f"{repo_name}-{owner}--tasks-{timestamp}.json"
+
+    with open(filename, "w") as f:
+        json.dump(shown, f, indent=2, default=str)
+
+    typer.echo(f"Found {len(all_tasks)} tasks for '{repo}' ({len(shown)} written to {filename})")
 
 
 def main() -> None:
