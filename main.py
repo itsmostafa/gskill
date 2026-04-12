@@ -105,7 +105,9 @@ def tasks(
     with open(filename, "w") as f:
         json.dump(shown, f, indent=2, default=str)
 
-    typer.echo(f"Found {len(all_tasks)} tasks for '{repo}' ({len(shown)} written to {filename})")
+    typer.echo(
+        f"Found {len(all_tasks)} tasks for '{repo}' ({len(shown)} written to {filename})"
+    )
 
 
 def main() -> None:
