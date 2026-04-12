@@ -47,6 +47,10 @@ This will:
 - Run up to 150 mini evaluations to optimize the skill
 - Write the result to `.claude/skills/jinja/SKILL.md`
 
+`run` only works for repositories that have task instances in `SWE-bench/SWE-smith`.
+If a GitHub repository exists but is not covered by that dataset, gskill will fail with
+an unsupported-repo message.
+
 ### Common options
 
 ```bash
@@ -77,6 +81,16 @@ uv run python main.py tasks pallets/jinja
 
 # Show more
 uv run python main.py tasks pallets/jinja --limit 25
+```
+
+### Discover supported repositories
+
+```bash
+# List the first 50 supported repos
+uv run python main.py repos
+
+# Filter supported repos by substring
+uv run python main.py repos --filter fast
 ```
 
 ### Help

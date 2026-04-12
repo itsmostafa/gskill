@@ -110,6 +110,42 @@ def tasks(
     )
 
 
+@app.command()
+def repos(
+    filter_text: str = typer.Option(
+        "",
+        "--filter",
+        "-f",
+        help="Only show supported repos containing this substring.",
+    ),
+    limit: int = typer.Option(
+        50,
+        "--limit",
+        "-l",
+        help="Maximum number of repos to print (0 shows all).",
+    ),
+) -> None:
+    """List repository slugs supported by the SWE-smith dataset."""
+    from src.tasks import list_supported_repos
+
+    repos = list_supported_repos(query=filter_text or None)
+    shown = repos if limit <= 0 else repos[:limit]
+
+    if not shown:
+        typer.echo("No supported repos matched the current filter.")
+        return
+
+    for repo in shown:
+        typer.echo(repo)
+
+    if len(shown) == len(repos):
+        typer.echo(f"Listed {len(shown)} supported repos from SWE-smith.")
+    else:
+        typer.echo(
+            f"Listed {len(shown)} of {len(repos)} supported repos from SWE-smith."
+        )
+
+
 def main() -> None:
     app()
 

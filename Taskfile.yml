@@ -37,3 +37,8 @@ tasks:
     desc: List SWE-smith tasks for a repo
     cmds:
       - uv run main.py tasks {{.CLI_ARGS}}
+
+  repos:
+    desc: List repos supported by SWE-smith
+    cmds:
+      - uv run main.py repos {{.CLI_ARGS}}
