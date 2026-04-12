@@ -51,6 +51,11 @@ def run(
         "-u",
         help="OpenAI-compatible base URL for local models (e.g. http://localhost:11434/v1). Env: OPENAI_BASE_URL.",
     ),
+    docker_pull_timeout: int = typer.Option(
+        0,
+        "--docker-pull-timeout",
+        help="Timeout in seconds for pre-pulling SWE-smith Docker images. Env: GSKILL_DOCKER_PULL_TIMEOUT.",
+    ),
 ) -> None:
     """Run the gskill pipeline: optimize a SKILL.md for the given repository."""
     from src.pipeline import run as _run
@@ -63,6 +68,7 @@ def run(
         agent_model=agent_model or None,
         skill_model=skill_model or None,
         base_url=base_url or None,
+        docker_pull_timeout=docker_pull_timeout or None,
     )
 
 

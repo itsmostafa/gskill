@@ -25,6 +25,7 @@ def run(
     agent_model: str | None = None,
     skill_model: str | None = None,
     base_url: str | None = None,
+    docker_pull_timeout: int | None = None,
 ) -> object:
     """Run the full gskill pipeline for a repository.
 
@@ -40,6 +41,9 @@ def run(
             ``GSKILL_SKILL_MODEL`` env var, then ``gpt-5.2``.
         base_url: OpenAI-compatible base URL for local models. Falls back to
             ``OPENAI_BASE_URL`` env var.
+        docker_pull_timeout: Timeout in seconds for pre-pulling SWE-smith
+            Docker images. Falls back to ``GSKILL_DOCKER_PULL_TIMEOUT``,
+            then 900 seconds.
 
     Returns:
         GEPA result object with ``best_candidate`` and ``best_score`` attributes.
@@ -71,7 +75,10 @@ def run(
     else:
         print("[gskill] Skipping initial skill generation (--no-initial-skill).")
 
-    evaluator = make_evaluator(agent_model=agent_model)
+    evaluator = make_evaluator(
+        agent_model=agent_model,
+        docker_pull_timeout=docker_pull_timeout,
+    )
 
     print(f"[gskill] Starting GEPA optimization (max_evals={max_evals})...")
     result = optimize_anything(
