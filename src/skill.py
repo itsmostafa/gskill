@@ -21,6 +21,16 @@ def _make_skill_name(repo: str) -> str:
     return name[:64]
 
 
+_USES_MAX_COMPLETION_TOKENS = ("gpt-5", "o1", "o2", "o3", "o4")
+
+
+def _completion_token_kwargs(model: str, max_output_tokens: int) -> dict[str, int]:
+    """Return the correct output-token parameter for the target chat model."""
+    if any(model.startswith(p) for p in _USES_MAX_COMPLETION_TOKENS):
+        return {"max_completion_tokens": max_output_tokens}
+    return {"max_tokens": max_output_tokens}
+
+
 def _fetch_readme(owner: str, repo: str, max_chars: int = 3000) -> str:
     """Fetch the README from GitHub API."""
     url = f"https://api.github.com/repos/{owner}/{repo}/readme"
@@ -119,7 +129,7 @@ def generate_initial_skill(
     try:
         message = client.chat.completions.create(
             model=resolved_model,
-            max_tokens=2000,
+            **_completion_token_kwargs(resolved_model, 2000),
             messages=[
                 {
                     "role": "user",
