@@ -6,6 +6,13 @@ tasks:
     cmds:
       - uv sync
 
+  check:
+    desc: Run all checks
+    deps:
+      - lint
+      - test
+      - format
+
   lint:
     desc: Lint with ruff
     cmds:
