@@ -16,17 +16,24 @@ def load_tasks(repo_name: str, n: int = 300) -> list[dict]:
         List of task dicts with fields like instance_id, repo, problem_statement,
         image_name, FAIL_TO_PASS, PASS_TO_PASS, etc.
     """
-    ds = load_dataset(DATASET_NAME, split="train")
+    # Stream from the Hub so we don't materialize the full dataset locally.
+    ds = load_dataset(DATASET_NAME, split="train", streaming=True)
     # The dataset uses 'swesmith/owner__repo.commithash' format, so match by
     # converting 'owner/repo' → 'owner__repo' and doing a substring check.
     slug = repo_name.replace("/", "__")
-    tasks = [dict(t) for t in ds if slug in t["repo"]]
+    tasks: list[dict] = []
+    for task in ds:
+        if slug not in task["repo"]:
+            continue
+        tasks.append(dict(task))
+        if len(tasks) >= n:
+            break
     if not tasks:
         raise ValueError(
             f"No tasks found for repo '{repo_name}' in {DATASET_NAME}. "
             f"Use the full 'owner/repo' format, e.g., 'pallets/jinja'."
         )
-    return tasks[:n]
+    return tasks
 
 
 def split_tasks(
