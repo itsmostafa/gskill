@@ -4,7 +4,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from src.skill import _completion_token_kwargs, generate_initial_skill
+from src.skill import _completion_token_kwargs, ensure_skill_frontmatter, generate_initial_skill
 
 
 class CompletionTokenKwargsTests(unittest.TestCase):
@@ -55,6 +55,33 @@ class GenerateInitialSkillTests(unittest.TestCase):
         self.assertEqual(captured_kwargs["model"], "gpt-5.2")
         self.assertEqual(captured_kwargs["max_completion_tokens"], 2000)
         self.assertNotIn("max_tokens", captured_kwargs)
+
+
+class EnsureSkillFrontmatterTests(unittest.TestCase):
+    def test_preserves_existing_frontmatter(self) -> None:
+        skill = "---\nname: groww-test\ndescription: Existing.\n---\n\nBody\n"
+
+        self.assertEqual(ensure_skill_frontmatter(skill, "owner/groww-test"), skill)
+
+    def test_adds_frontmatter_when_missing(self) -> None:
+        skill = "Use pytest and npm test for verification."
+
+        wrapped = ensure_skill_frontmatter(skill, "owner/groww-test")
+
+        self.assertTrue(wrapped.startswith("---\n"))
+        self.assertIn("name: groww-test\n", wrapped)
+        self.assertIn("description: Use pytest and npm test for verification.\n", wrapped)
+        self.assertIn("\n---\n\nUse pytest", wrapped)
+
+    def test_falls_back_to_repo_description_for_agent_preamble(self) -> None:
+        wrapped = ensure_skill_frontmatter(
+            "You are an expert agent for this repository.", "owner/groww-test"
+        )
+
+        self.assertIn(
+            "description: Repository-specific guidance for coding agents working on owner/groww-test.\n",
+            wrapped,
+        )
 
 
 if __name__ == "__main__":

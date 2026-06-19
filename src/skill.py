@@ -21,6 +21,38 @@ def _make_skill_name(repo: str) -> str:
     return name[:64]
 
 
+def _has_yaml_frontmatter(skill: str) -> bool:
+    lines = skill.lstrip().splitlines()
+    return len(lines) >= 3 and lines[0] == "---" and "---" in lines[1:]
+
+
+def _skill_description(skill: str, repo_name: str) -> str:
+    first_line = next((line.strip("# ").strip() for line in skill.splitlines() if line.strip()), "")
+    if first_line and first_line != "---" and not first_line.lower().startswith("you are "):
+        description = first_line
+    else:
+        description = (
+            f"Repository-specific guidance for coding agents working on {repo_name}."
+        )
+    description = re.sub(r"<[^>]*>", "", description)
+    description = re.sub(r"\s+", " ", description).strip()
+    return description[:1024] or (
+        f"Repository-specific guidance for coding agents working on {repo_name}."
+    )
+
+
+def ensure_skill_frontmatter(skill: str, repo_name: str) -> str:
+    """Return SKILL.md content with valid YAML frontmatter."""
+    body = skill.strip()
+    if _has_yaml_frontmatter(body):
+        return body + "\n"
+
+    short_name = repo_name.split("/")[-1]
+    name = _make_skill_name(short_name)
+    description = _skill_description(body, repo_name)
+    return f"---\nname: {name}\ndescription: {description}\n---\n\n{body}\n"
+
+
 _USES_MAX_COMPLETION_TOKENS = ("gpt-5", "o1", "o2", "o3", "o4")
 
 
@@ -205,5 +237,5 @@ def save_skill(skill: str, repo_name: str, output_dir: str = ".claude/skills") -
     short_name = repo_name.split("/")[-1]
     path = Path(output_dir) / short_name / "SKILL.md"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(skill)
+    path.write_text(ensure_skill_frontmatter(skill, repo_name))
     return path
